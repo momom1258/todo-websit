@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>قائمة المهام - SmartTasks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Cairo", sans-serif;
+      background-color: #f9f9f9;
+      direction: rtl;
+    }
+
+    .header {
+      background-color: #ffffff;
+      padding: 15px 0;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 600;
+      color: #5d9cec;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 480px) {
+      .input-area {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 16px;
+      background-color: #f7f7f7;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #5d9cec;
+      background-color: #ffffff;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 16px;
+      background-color: #5d9cec;
+      border: none;
+      color: white;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #4a89dc;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+      text-align: right;
+    }
+
+    li {
+      background-color: #eef5ff;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      position: relative;
+    }
+
+    li.completed {
+      text-decoration: line-through;
+      color: gray;
+      background-color: #d4edda;
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    li button {
+      background-color: #e74c3c;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    li button:hover {
+      background-color: #c0392b;
+    }
+
+    .footer {
+      margin-top: 50px;
+      padding: 20px 0;
+      background-color: #f0f0f0;
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- الشعار -->
+  <header class="header">
+    <div class="logo">🧠 SmartTasks</div>
+  </header>
+
+  <!-- المحتوى -->
+  <div class="container">
+    <h1>📋 قائمة المهام</h1>
+    <div class="input-area">
+      <input type="text" id="taskInput" placeholder="أدخل مهمتك هنا" />
+      <button onclick="addTask()">➕ إضافة</button>
+    </div>
+    <ul id="taskList"></ul>
+  </div>
+
+  <!-- الفوتر -->
+  <footer class="footer">
+    © 2025 SmartTasks - جميع الحقوق محفوظة
+  </footer>
+
+  <!-- سكربت -->
+  <script>
+    window.onload = function () {
+      loadTasks();
+    };
+
+    function loadTasks() {
+      const taskList = document.getElementById("taskList");
+      taskList.innerHTML = "";
+
+      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+      tasks.forEach((task, index) => {
+        createTaskElement(task.text, task.completed, index);
+      });
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const text = input.value.trim();
+      if (text === "") return;
+
+      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      tasks.push({ text: text, completed: false });
+      saveTasks(tasks);
+      createTaskElement(text, false, tasks.length - 1);
+      input.value = "";
+    }
+
+    function createTaskElement(text, completed, index) {
+      const taskList = document.getElementById("taskList");
+
+      const li = document.createElement("li");
+      if (completed) li.classList.add("completed");
+
+      const left = document.createElement("div");
+      left.className = "task-left";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = completed;
+      checkbox.onclick = function () {
+        toggleComplete(index);
+      };
+
+      const span = document.createElement("span");
+      span.textContent = text;
+
+      left.appendChild(checkbox);
+      left.appendChild(span);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "حذف";
+      deleteBtn.onclick = function () {
+        deleteTask(index);
+      };
+
+      li.appendChild(left);
+      li.appendChild(deleteBtn);
+      taskList.appendChild(li);
+    }
+
+    function toggleComplete(index) {
+      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks(tasks);
+      loadTasks();
+    }
+
+    function deleteTask(index) {
+      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      tasks.splice(index, 1);
+      saveTasks(tasks);
+      loadTasks();
+    }
+  </script>
+</body>
+</html>
+
